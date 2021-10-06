@@ -1,0 +1,23 @@
+Epoch: 3000
+Buffer Size: 262144
+Batch Size: 65536
+Step/Epoch: 150000
+Step/Collect: 8192
+Repeat/Collect: 10
+Learning Rate: 3.0e-4
+Gamma: 0.99
+Value Coefficient: 0.25
+Entropy Coefficient: 0.0
+GAE Lambda: 0.95
+Clip: 0.2
+Dual Clip: ~
+Training Envs: 64
+Test Envs: 10
+Max Grad Norm: 0.5
+Epsilon Clip: 0.15
+Value Clip: 0
+Recompute Advantage: 1
+Advantage Normalization: 0
+Reward Nomalization: True
+Learning Rate Decay: True
+Initial Sigma: -4.0

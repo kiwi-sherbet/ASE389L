@@ -1,0 +1,131 @@
+<?xml version="1.0" ?>
+<robot name="test" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+
+  <link name="linkBase">
+
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <mass value="1.0"/>
+      <inertia ixx="0.01" ixy="0.0001" ixz="0.0001" iyy="0.01" iyz="0.0001" izz="0.01"/>
+    </inertial>
+
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <box size="0.2, 0.2 0.1"/>
+      </geometry>
+    </collision>
+
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <box size="0.2, 0.2 0.1"/>
+      </geometry>
+    </visual>
+
+  </link>
+
+
+  <link name="link1">
+
+    <inertial>
+      <origin rpy="0 0 0" xyz="0.0 0.0 0.0"/>
+      <mass value="0.1"/>
+      <inertia ixx="0.005" iyy="0.005" izz="0.001" ixy="1.0e-08" ixz="1.0e-08" iyz="1.0e-08"/>
+    </inertial>
+
+    <collision>
+      <origin rpy="0 1.57079632679 0" xyz="0 0 -0.1"/>
+      <geometry>
+        <box size="0.2 0.025 0.025"/>
+      </geometry>
+    </collision>
+
+  </link>
+
+
+  <link name="link2">
+
+    <inertial>
+      <origin rpy="0 0 0" xyz="0.0 0.0 0.0"/>
+      <mass value="0.1"/>
+      <inertia ixx="0.005" iyy="0.005" izz="0.001" ixy="1.0e-08" ixz="1.0e-08" iyz="1.0e-08"/>
+    </inertial>
+
+    <collision>
+      <origin rpy="0 1.57079632679 0" xyz="0 0 -0.1"/>
+      <geometry>
+        <box size="0.2 0.016 0.016"/>
+      </geometry>
+    </collision>
+
+  </link>
+
+
+  <link name="linkToe">
+
+    <contact>
+      <friction_anchor/>
+      <stiffness value="30000.0"/>
+      <damping value="1000.0"/>
+      <spinning_friction value="0.1"/>
+      <lateral_friction value="1.0"/>
+    </contact>
+
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <sphere radius="0.02"/>
+      </geometry>
+    </collision>
+
+    <inertial>
+      <mass value="0.06"/>
+      <inertia ixx="9.6e-06" ixy="0.0" ixz="0.0" iyy="9.6e-06" iyz="0.0" izz="9.6e-06"/>
+    </inertial>
+
+  </link>
+
+
+  <!--==================== Active Joints ==================================-->
+
+
+   <joint name="joint1" type="revolute">
+
+    <axis xyz="0 1 0"/>
+    <parent link="linkBase"/>
+    <child link="link1"/>
+    <origin rpy="0 0 0" xyz="0 0 -0.05"/>
+
+    <limit effort="55" velocity="28.6" upper="0.78540" lower="-2.3562"/>
+    <joint_properties damping=".0" friction=".0"/>
+
+  </joint>
+
+
+  <joint name="joint2" type="revolute">
+
+    <axis xyz="0 1 0"/>
+    <parent link="link1"/>
+    <child link="link2"/>
+    <origin rpy="0 0 0" xyz="0 0 -0.2"/>
+
+    <limit effort="55" velocity="28.6" upper="3.1416" lower="0.0"/>
+    <joint_properties damping=".0" friction=".0"/>
+
+  </joint>
+
+  <!--==================== Fixed Joints ==================================-->
+
+  <joint name="jointToe" type="fixed">
+
+    <parent link="link2"/>
+    <child link="linkToe"/>
+    <origin rpy="0 0 0" xyz="0 0 -0.2"/>
+    <dynamics damping="0.0" friction="0.0"/>
+
+  </joint>
+
+</robot>
+
