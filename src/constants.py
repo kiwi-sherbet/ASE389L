@@ -45,7 +45,7 @@ NUM_COMMANDS = 2
 
 PI = 3.14159265359
 GRAVITY = (0, 0, -9.8)
-
+FIELD_RANGE = 5
 
 ## Reward coefficients ##
 

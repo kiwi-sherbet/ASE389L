@@ -85,3 +85,45 @@ class modelMobile():
 		else:
 			return (self.sim.getJointState(self.idRobot, self.jntActiveRight)[2][5],
 					self.sim.getJointState(self.idRobot, self.jntActiveLeft)[2][5])
+
+
+	def getBaseRollPitchYaw(self):
+		"""Get minitaur's base orientation in euler angle in the world frame.
+
+		Returns:
+		  A tuple (roll, pitch, yaw) of the base in world frame.
+		"""
+		_, orientation = self.getCurrentBodyPose()
+		roll_pitch_yaw = self.sim.getEulerFromQuaternion(orientation)
+		return roll_pitch_yaw
+
+
+	def getBaseVelocity(self):
+		linear_velocity = self.sim.getBaseVelocity(self.idRobot)[0]
+		_, orientation = self.getCurrentBodyPose()
+		_, orientation_inversed = self.sim.invertTransform(
+			[0, 0, 0], orientation)
+		relative_velocity, _ = self.sim.multiplyTransforms(
+			[0, 0, 0], orientation_inversed, linear_velocity,
+			self.sim.getQuaternionFromEuler([0, 0, 0]))
+		return relative_velocity
+
+
+	def getBaseRollPitchYawRate(self):
+		angular_velocity = self.sim.getBaseVelocity(self.idRobot)[1]
+		_, orientation = self.getCurrentBodyPose()
+		_, orientation_inversed = self.sim.invertTransform(
+			[0, 0, 0], orientation)
+		relative_angular_velocity, _ = self.sim.multiplyTransforms(
+			[0, 0, 0], orientation_inversed, angular_velocity,
+			self.sim.getQuaternionFromEuler([0, 0, 0]))
+		return relative_angular_velocity
+
+
+	def getTargetToLocalFrame(self, position):
+		position_base, orientation_base = self.getCurrentBodyPose()
+		position_base_inversed, orientation_base_inversed = self.sim.invertTransform(
+			position_base, orientation_base)
+		relative_position, _ = self.sim.multiplyTransforms(
+			position_base_inversed, orientation_base_inversed, position_base, self.sim.getQuaternionFromEuler([0, 0, 0]))
+		return relative_position

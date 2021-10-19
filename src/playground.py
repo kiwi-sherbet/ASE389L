@@ -20,6 +20,33 @@ from gym import spaces, Env
 import cv2
 
 
+def setupObstacles(client, number):
+    p = client
+    idColCylinder = p.createCollisionShape(p.GEOM_CYLINDER, radius=0.2, height=0.5)
+    idVisualShape = -1
+    raRandPos = FIELD_RANGE*np.random.randn(number, 2)
+
+    mass = 10
+    baseOrientation = [0, 0, 0, 1]
+
+    raObstacles = []
+
+    for idx in range(number):
+        basePosition = [raRandPos[idx,0], raRandPos[idx,1], 0.25]
+        raObstacles.append(p.createMultiBody(mass, idColCylinder, idVisualShape, basePosition, baseOrientation))
+
+    return raObstacles
+
+
+def setupGoal(client, coord):
+    p = client
+    idVisualShape = p.createVisualShape(p.GEOM_CYLINDER, radius=0.3, length=0.05)
+    idCollisionShape = None
+
+    basePosition = [coord[0], coord[1], 0.025]
+    modelGoal = p.createMultiBody(baseVisualShapeIndex=idVisualShape, basePosition=basePosition)
+
+    return modelGoal
 
 
 ## Set up physical models
@@ -31,10 +58,15 @@ def setupWorld(client):
     modelTerrain  = p.createMultiBody(0, shapePlane)
     p.changeDynamics(modelTerrain, -1, lateralFriction=1.0)
 
+    raObstacles = setupObstacles(p, 20)
+    modelGoal = setupGoal(p, FIELD_RANGE*np.random.randn(2))
     ## Set up robot
     modelRobot = robot.modelMobile(p, [0., 0., 0.5], [0, 0, 0, 1])
 
-    return modelRobot, modelTerrain
+    raModels = {'robot': modelRobot, 'terrain': modelTerrain, 'goal': modelGoal, 'obstacles': raObstacles}
+
+    return raModels
+
 
 
 ## Terrain affordance module
@@ -52,7 +84,7 @@ class envTest(Env):
 
         self.observation_space = spaces.Box(low=-1,
                                             high=1,
-                                            shape=(30,), dtype=np.float32)
+                                            shape=(15,), dtype=np.float32)
 
         self.action_space = spaces.Box( low=-1,
                                         high=1,
@@ -103,20 +135,23 @@ class envTest(Env):
         self.client.setGravity(0, 0, -9.8)
 
         # creating environment
-        self.modelRobot, self.modelTerrain = setupWorld(self.client)
+        self.models = setupWorld(self.client)
+        self.robot = self.models['robot']
+        self.goal = self.models['goal']
 
         if self.flagRecord:
             path = "{}/{}.avi".format(self._video_save_path, datetime.datetime.now().strftime("%m%d_%H%M%S"))
-            print(path)
             self.recorder = cv2.VideoWriter(path,
                                             self._video_format, 30, (self._render_width, self._render_height))
 
-        self.control = control.ctlrRobot(self.modelRobot)
+        self.control = control.ctlrRobot(self.robot)
         self.dicCmdParam = {"Offset": np.zeros(NUM_COMMANDS), 
                             "Scale":  np.array([1] * NUM_COMMANDS)}
         self.dicActParam = {"Offset": np.zeros(NUM_ACTIONS), 
                             "Scale":  np.array([1] * NUM_ACTIONS)}
         self.target = self._get_targets()
+
+        self.cnt = 0
 
         for _ in range(REPEAT_INIT):
             self.control.holdRobot()
@@ -143,11 +178,8 @@ class envTest(Env):
 
     def close(self):
 
-        del self.modelRobot, self.modelTerrain
-        del self.target
         if self.flagRecord:
             self.recorder.release()
-            del self.recorder
 
 
     def _run_sim(self, action):
@@ -161,35 +193,58 @@ class envTest(Env):
 
         done = False
         dicLog = {}
+        dicRew = {}
         reward = 0
 
-        target = self._get_targets()
-        obsBodyPos, obsBodyAtt = self.modelRobot.getCurrentBodyPose()
+        target = np.array(self._get_targets())
+        raWheelTrq = np.array(self.robot.getCurrentWheelJoints(TORQUE))
+        raWheelVel = np.array(self.robot.getCurrentWheelJoints(VELOCITY))
+        raBodyPos, raBodyAtt = self.robot.getCurrentBodyPose()
+        raBodyPos = np.array(raBodyPos)
+        raBodyAtt = np.array(raBodyAtt)
 
         ### YOUR ENVIRONMENT CONSTRAINTS HERE ###
-        rewPos = self.dicRewardCoeff["position"] * np.sum((target[0:3] - obsBodyPos)**2)
-        rewYaw = self.dicRewardCoeff["yaw"] * (target[3] - obsBodyAtt[2])**2
-        reward = rewPos + rewYaw
+        
+        sqrErr = np.sum((target - raBodyPos)**2)
+        valEng = np.sum(np.absolute(raWheelTrq.flatten() @ raWheelVel.flatten()))
 
-        dicLog["Test"] = 0
+        dicRew["Position"] = self.dicRewardCoeff["Position"] * sqrErr
+        dicRew["Energy"] = self.dicRewardCoeff["Energy"] * valEng
+
+        if sqrErr < 0.04:
+            done = True
+            dicRew["Terminal"] = self.dicRewardCoeff["Terminal"]
+        elif self.cnt > 1000:
+            done = True
+        else:
+            self.cnt+=1
+
+        for rew in dicRew.values():
+            reward += rew
 
         if done:
             dicLog["Done"] = 1
+        dicLog["Reward"] = dicRew
 
         return reward, done, dicLog
 
 
     def _get_obs(self):
 
-        obsBodyPos, obsBodyAtt = self.modelRobot.getCurrentBodyPose()
-        obsWheel = self.modelRobot.getCurrentWheelJoints(VELOCITY)
+        obsBodyPos, obsBodyAtt = self.robot.getCurrentBodyPose()
+        obsWheel = self.robot.getCurrentWheelJoints(VELOCITY)
+        obsVel = self.robot.getBaseVelocity()[0:2]
+        obsYawRate = self.robot.getBaseRollPitchYawRate()[2]
+        obsTarget = self.robot.getTargetToLocalFrame(self._get_targets())
 
-        return np.concatenate((obsBodyPos, obsBodyAtt, obsWheel), axis=None)
+        return np.concatenate((obsBodyPos, obsBodyAtt, obsWheel, obsVel, obsYawRate, obsTarget), axis=None)
 
 
     def _get_targets(self):
 
-        return np.array([1, 0, 0, 0.2])
+        raXYZ, _ = self.client.getBasePositionAndOrientation(self.goal)
+
+        return raXYZ
 
 
     def render(self):
@@ -198,7 +253,7 @@ class envTest(Env):
             return
             
         try:
-            raBodyXYZ, raBodyAng = self.modelRobot.getCurrentBodyPose()
+            raBodyXYZ, raBodyAng = self.robot.getCurrentBodyPose()
         except Exception as e: 
             sys.stdout.write("\r{}\r\n".format(e))
             raBodyXYZ = np.zeros(3)

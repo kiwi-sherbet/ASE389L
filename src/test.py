@@ -24,12 +24,12 @@ done = False
 
 cnt = 0
 
-while cnt < 5000:
+while not done:
     # action = np.random.normal(0, 0.25, size=(2))
     # action = np.array([0.3, 0.3])
     action = np.cos(0.005*cnt) * np.array([1.8, 1.8])
     ob, rw, done, _ = env.step(action)
-    print(ob)
+    print(ob.shape)
     print(rw)
     cnt+=1
 

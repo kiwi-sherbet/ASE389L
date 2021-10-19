@@ -26,14 +26,14 @@ from constants import *
 
 def train():
 
-    experiment_config = yaml.load(open("{}/{}".format(PATH_CONFIG, SUBPATH_CONFIG["experiment"]), 'r'))
-    ppo_config = yaml.load(open("{}/{}".format(PATH_CONFIG, SUBPATH_CONFIG["ppo"]), 'r'))
-    reward_config = yaml.load(open("{}/{}".format(PATH_CONFIG, SUBPATH_CONFIG["reward"]), 'r'))
+    experiment_config = yaml.load(open("{}/{}".format(PATH_CONFIG, SUBPATH_CONFIG["experiment"]), 'r'), Loader=yaml.SafeLoader)
+    ppo_config = yaml.load(open("{}/{}".format(PATH_CONFIG, SUBPATH_CONFIG["ppo"]), 'r'), Loader=yaml.SafeLoader)
+    reward_config = yaml.load(open("{}/{}".format(PATH_CONFIG, SUBPATH_CONFIG["reward"]), 'r'), Loader=yaml.SafeLoader)
 
     device = experiment_config["Device"] if torch.cuda.is_available() else "cpu"
 
     t0 = datetime.datetime.now().strftime("%m%d_%H%M%S")
-    save_name = f'{experiment_config["Save"]}_Sigma_{ppo_config["Initial Sigma"]}_Learning_{ppo_config["Learning Rate"]}_{t0}'
+    save_name = f'{experiment_config["Save"].replace(" ", "_")}_{t0}'
     save_path = os.path.join(PATH_SAVE, experiment_config["Task"].replace(" ", "_"), save_name)
     policy_path = os.path.join(save_path, 'policy')
     config_path = os.path.join(save_path, 'config')
@@ -64,8 +64,8 @@ def train():
     seed = experiment_config["Seed"]
     np.random.seed(seed)
     torch.manual_seed(seed)
-    # train_envs.seed()
-    # test_envs.seed()
+    train_envs.seed()
+    test_envs.seed()
 
     activation = [nn.ReLU, nn.ReLU]
 
@@ -74,11 +74,7 @@ def train():
     actor = ActorProb(net_a, action_shape, max_action=max_action, unbounded=True, device=device).to(device)
     critic = Critic(net_c, device=device).to(device)
     
-    # # orthogonal initialization
-    # for m in list(actor.modules()) + list(critic.modules()):
-    #     if isinstance(m, torch.nn.Linear):
-    #         torch.nn.init.orthogonal_(m.weight)
-    #         torch.nn.init.zeros_(m.bias)
+
 
     torch.nn.init.constant_(actor.sigma_param, ppo_config["Initial Sigma"])
     for m in list(actor.modules()) + list(critic.modules()):
@@ -86,9 +82,7 @@ def train():
             # orthogonal initialization
             torch.nn.init.orthogonal_(m.weight, gain=np.sqrt(2))
             torch.nn.init.zeros_(m.bias)
-    # do last policy layer scaling, this will make initial actions have (close to)
-    # 0 mean and std, and will help boost performances,
-    # see https://arxiv.org/abs/2006.05990, Fig.24 for details
+
     for m in actor.mu.modules():
         if isinstance(m, torch.nn.Linear):
             torch.nn.init.zeros_(m.bias)

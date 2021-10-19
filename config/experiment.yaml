@@ -1,6 +1,6 @@
 Device: "cuda"
-Project: "Blind Locomotion Learning Rate"
-Task: "RMA Copy"
-Save: "Learning 3.0e-4"
+Project: "ASE389L"
+Task: "Test"
+Save: "Oct 19"
 Note: "None"
 Seed: 0
