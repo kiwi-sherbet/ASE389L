@@ -99,6 +99,7 @@ class envTest(Env):
             self._render_height = 360
             self._video_format = cv2.VideoWriter_fourcc(*'MP42')
             self._video_save_path = recording
+            self.recorder = None
         else:
             self.flagRecord = False
 
@@ -139,11 +140,6 @@ class envTest(Env):
         self.robot = self.models['robot']
         self.goal = self.models['goal']
 
-        if self.flagRecord:
-            path = "{}/{}.avi".format(self._video_save_path, datetime.datetime.now().strftime("%m%d_%H%M%S"))
-            self.recorder = cv2.VideoWriter(path,
-                                            self._video_format, 30, (self._render_width, self._render_height))
-
         self.control = control.ctlrRobot(self.robot)
         self.dicCmdParam = {"Offset": np.zeros(NUM_COMMANDS), 
                             "Scale":  np.array([1] * NUM_COMMANDS)}
@@ -162,24 +158,44 @@ class envTest(Env):
 
     def step(self, action):
 
-        self._run_sim(action)
+        self._run_sim(5*action)
         ob = self._get_obs()
         reward, done, dicLog = self._evaluate()
 
         if self.flagRecord:
-            img = self.render()
-            self.recorder.write(img)
+            if self.recorder == None:
+                self._start_recorder()
 
-        if done:
-            self.close()
+            self._write_recorder()
+
+            if done:
+                self._close_recorder()
+
 
         return ob, reward, done, dicLog
 
 
     def close(self):
 
-        if self.flagRecord:
-            self.recorder.release()
+        pass
+
+    
+    def _write_recorder(self):
+        
+        img = self.render()
+        self.recorder.write(img)
+
+
+    def _start_recorder(self):
+
+        path = "{}/{}.avi".format(self._video_save_path, datetime.datetime.now().strftime("%m%d_%H%M%S"))
+        self.recorder = cv2.VideoWriter(path, self._video_format, 30, (self._render_width, self._render_height))
+
+
+    def _close_recorder(self):
+
+        self.recorder.release()
+        self.recorder = None
 
 
     def _run_sim(self, action):
