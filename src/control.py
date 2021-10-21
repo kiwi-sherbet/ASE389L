@@ -68,13 +68,13 @@ class ctlrRobot(object):
         self._raJointPos = self.hdlrRobot.getCurrentWheelJoints(POSITION)
         self._raJointVel = self.hdlrRobot.getCurrentWheelJoints(VELOCITY)
 
-        return
+        return self._raJointPos, self._raJointVel
 
 
 
     def applyAction(self, raAction):
 
-        self.hdlrRobot.setTargetWheelJoints(POSITION, raAction)
+        self.hdlrRobot.setTargetWheelJoints(VELOCITY, raAction)
 
         return
 
