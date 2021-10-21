@@ -3,7 +3,6 @@
 import numpy as np
 
 from constants import *
-import pid
 
 
 class ctlrRobot(object):
@@ -15,9 +14,6 @@ class ctlrRobot(object):
         self.raMaxJointPos = np.array([2] * NUM_ACTIONS)
 
         self.hdlrRobot = hdlrRobot
-
-        self.raPIDGainP = GAIN_P
-        self.raPIDGainD = GAIN_D
 
         self._flagAction = True
 
@@ -32,14 +28,7 @@ class ctlrRobot(object):
         ## Initiate internal variables
 
         self._cntStep = 0
-        self._dicAction = {}
-
-        for idxJoint in range(0, NUM_ACTIONS):
-            self._dicAction[idxJoint] = 0.4 #self.raDefaultJointAction[idxJoint]
-
-        self.raMotorCtlr = [pid.hdlrPID(  self.raPIDGainP[idxJoint], self.raPIDGainD[idxJoint], 0, 1.0, 
-                                            int(1.0/TIME_STEP), 0.3, 40, False) 
-                            for idxJoint in range(0, NUM_ACTIONS)]
+        self._raAction = np.zeros(2)
 
         self.rcvObservation()
 
@@ -71,7 +60,7 @@ class ctlrRobot(object):
     def holdRobot(self):
 
         self.rcvObservation()
-        self.applyAction(self._dicAction)
+        self.applyAction(self._raAction)
 
 
     def rcvObservation(self):
@@ -83,23 +72,9 @@ class ctlrRobot(object):
 
 
 
-    def applyAction(self, dicAction):
+    def applyAction(self, raAction):
 
-        q = self.getTrueMotorVelocities()
-
-        for idxJoint in range(0, NUM_ACTIONS):
-
-            fdbVal = dicAction[idxJoint] - q[idxJoint]
-            fwdVal = 0
-
-            if fwdVal != 0:
-                fdbVal = 0
-
-            self.raMotorCtlr[idxJoint].update(fdbVal, fwdVal)
-
-        raJointTorq = [self.raMotorCtlr[idxJoint].output() for idxJoint in range(NUM_ACTIONS)]
-
-        self.hdlrRobot.setTargetWheelJoints(TORQUE, raJointTorq)
+        self.hdlrRobot.setTargetWheelJoints(POSITION, raAction)
 
         return
 
@@ -107,7 +82,7 @@ class ctlrRobot(object):
     def step(self):
 
         self.rcvObservation()
-        self.applyAction(self._dicAction)
+        self.applyAction(self._raAction)
         self._cntStep += 1
 
         return
@@ -133,7 +108,7 @@ class ctlrRobot(object):
         if self._flagAction:
             self._flagAction = False
             for idxJoint in range(NUM_ACTIONS):
-                self._dicAction[idxJoint] = raAction[idxJoint]
+                self._raAction[idxJoint] = raAction[idxJoint]
                 pass
             return True
         else:

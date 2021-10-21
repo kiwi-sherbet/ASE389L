@@ -64,8 +64,6 @@ def train():
     seed = experiment_config["Seed"]
     np.random.seed(seed)
     torch.manual_seed(seed)
-    train_envs.seed()
-    test_envs.seed()
 
     activation = [nn.ReLU, nn.ReLU]
 
@@ -74,7 +72,6 @@ def train():
     actor = ActorProb(net_a, action_shape, max_action=max_action, unbounded=True, device=device).to(device)
     critic = Critic(net_c, device=device).to(device)
     
-
 
     torch.nn.init.constant_(actor.sigma_param, ppo_config["Initial Sigma"])
     for m in list(actor.modules()) + list(critic.modules()):

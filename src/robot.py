@@ -127,3 +127,9 @@ class modelMobile():
 		relative_position, _ = self.sim.multiplyTransforms(
 			position_base_inversed, orientation_base_inversed, position_base, self.sim.getQuaternionFromEuler([0, 0, 0]))
 		return relative_position
+
+
+	def checkFlipped(self):
+		position_base, orientation_base = self.getCurrentBodyPose()
+		rot_mat = self.sim.getMatrixFromQuaternion(orientation_base)
+		return rot_mat[-1] < 0.5

@@ -214,7 +214,7 @@ class envTest(Env):
         if sqrErr < 0.04:
             done = True
             dicRew["Terminal"] = self.dicRewardCoeff["Terminal"]
-        elif self.cnt > 1000:
+        elif self.cnt > 1000 or self.robot.checkFlipped():
             done = True
         else:
             self.cnt+=1
