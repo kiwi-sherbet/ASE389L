@@ -58,7 +58,7 @@ def setupWorld(client):
     modelTerrain  = p.createMultiBody(0, shapePlane)
     p.changeDynamics(modelTerrain, -1, lateralFriction=1.0)
 
-    raObstacles = setupObstacles(p, 20)
+    raObstacles = setupObstacles(p, 10)
     modelGoal = setupGoal(p, FIELD_RANGE*np.random.randn(2))
     ## Set up robot
     modelRobot = robot.modelMobile(p, [0., 0., 0.5], [0, 0, 0, 1])
@@ -82,8 +82,8 @@ class envTest(Env):
 
         self.dicRewardCoeff = reward
 
-        self.observation_space = spaces.Box(low=-1,
-                                            high=1,
+        self.observation_space = spaces.Box(low=np.array((-1, -1, -1, -1, -10, -10, -10, -10, -10, -10, -10, -10, - 2 * FIELD_RANGE, - 2 * FIELD_RANGE, - 2 * FIELD_RANGE)),
+                                            high=np.array((1, 1, 1, 1, 10, 10, 10, 10, 10, 10, 10, 10, 2 * FIELD_RANGE, 2 * FIELD_RANGE, 2 * FIELD_RANGE)),
                                             shape=(15,), dtype=np.float32)
 
         self.action_space = spaces.Box( low=-1,
@@ -210,6 +210,7 @@ class envTest(Env):
         done = False
         dicLog = {}
         dicRew = {}
+        dicState = {}
         reward = 0
 
         target = np.array(self._get_targets())
@@ -224,13 +225,17 @@ class envTest(Env):
         sqrErr = np.sum((target - raBodyPos)**2)
         valEng = np.sum(np.absolute(raWheelTrq.flatten() @ raWheelVel.flatten()))
 
+        dicState["Distance"] = sqrErr
+        dicState["Energy"] = valEng
+
         dicRew["Position"] = self.dicRewardCoeff["Position"] * sqrErr
         dicRew["Energy"] = self.dicRewardCoeff["Energy"] * valEng
 
         if sqrErr < 0.04:
             done = True
-            dicRew["Terminal"] = self.dicRewardCoeff["Terminal"]
+            dicRew["Goal"] = self.dicRewardCoeff["Goal"]
         elif self.cnt > 1000 or self.robot.checkFlipped():
+            dicRew["Fail"] = self.dicRewardCoeff["Fail"]
             done = True
         else:
             self.cnt+=1
@@ -238,22 +243,25 @@ class envTest(Env):
         for rew in dicRew.values():
             reward += rew
 
+        dicRew["Sum"] = reward
+
         if done:
             dicLog["Done"] = 1
         dicLog["Reward"] = dicRew
+        dicLog["State"] = dicState
 
         return reward, done, dicLog
 
 
     def _get_obs(self):
 
-        obsBodyPos, obsBodyAtt = self.robot.getCurrentBodyPose()
+        _, obsBodyAtt = self.robot.getCurrentBodyPose()
         obsWheel = self.robot.getCurrentWheelJoints(VELOCITY)
-        obsVel = self.robot.getBaseVelocity()[0:2]
-        obsYawRate = self.robot.getBaseRollPitchYawRate()[2]
+        obsVel = self.robot.getBaseVelocity()
+        obsYawRate = self.robot.getBaseRollPitchYawRate()
         obsTarget = self.robot.getTargetToLocalFrame(self._get_targets())
 
-        return np.concatenate((obsBodyPos, obsBodyAtt, obsWheel, obsVel, obsYawRate, obsTarget), axis=None)
+        return np.concatenate((obsBodyAtt, obsWheel, obsVel, obsYawRate, obsTarget), axis=None)
 
 
     def _get_targets(self):

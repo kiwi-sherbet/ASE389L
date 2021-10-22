@@ -1,3 +1,4 @@
-Position: -0.1
-Energy: -0.01
-Terminal: 10
+Position: -0.002
+Energy: -0.2
+Goal: 10
+Fail: -10

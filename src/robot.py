@@ -125,7 +125,7 @@ class modelMobile():
 		position_base_inversed, orientation_base_inversed = self.sim.invertTransform(
 			position_base, orientation_base)
 		relative_position, _ = self.sim.multiplyTransforms(
-			position_base_inversed, orientation_base_inversed, position_base, self.sim.getQuaternionFromEuler([0, 0, 0]))
+			position_base_inversed, orientation_base_inversed, position, self.sim.getQuaternionFromEuler([0, 0, 0]))
 		return relative_position
 
 

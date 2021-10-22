@@ -63,6 +63,16 @@ class WandbLogger():
                 dicLogInfo["train/info/Reward"] = collect_result["rew"]
                 dicLogInfo["train/info/Length"] = collect_result["len"]
 
+                infos = collect_result["infos"]
+
+                if "Reward" in infos.keys():
+                    for key, value in infos["Reward"].items():
+                        dicLogInfo["train/reward/{}".format(key)] = np.average(value)
+
+                if "State" in infos.keys():
+                    for key, value in infos["State"].items():
+                        dicLogInfo["train/state/{}".format(key)] = np.average(value)
+
                 self.writer.log(dicLogInfo, step=step, commit=False)
                 self.last_log_train_step = step
 
@@ -78,6 +88,17 @@ class WandbLogger():
             dicLogInfo["test/info/Length"] = len_
             dicLogInfo["test/info/RewardStd"] = rew_std
             dicLogInfo["test/info/LengthStd"] = len_std
+
+
+            infos = collect_result["infos"]
+
+            if "Reward" in infos.keys():
+                for key, value in infos["Reward"].items():
+                    dicLogInfo["test/reward/{}".format(key)] = np.average(value)
+
+            if "State" in infos.keys():
+                for key, value in infos["State"].items():
+                    dicLogInfo["test/state/{}".format(key)] = np.average(value)
 
             self.writer.log(dicLogInfo, step=step, commit=False)
             self.last_log_test_step = step

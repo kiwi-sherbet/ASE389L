@@ -27,9 +27,9 @@ cnt = 0
 while not done:
     # action = np.random.normal(0, 0.25, size=(2))
     # action = np.array([0.3, 0.3])
-    action = np.cos(0.05*cnt) * np.array([1.8, 1.8])
+    action = np.cos(0.05*cnt) * np.array([1.0, 1.0])
     ob, rw, done, _ = env.step(action)
-    print(ob.shape)
+    print(ob[:-3]) 
     print(rw)
     cnt+=1
 
