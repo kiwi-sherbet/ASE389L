@@ -24,8 +24,9 @@ def setupObstacles(client, number):
     p = client
     idColCylinder = p.createCollisionShape(p.GEOM_CYLINDER, radius=0.2, height=0.5)
     idVisualShape = -1
-    raRandPos = FIELD_RANGE*np.random.randn(number, 2)
-
+    raRandPos = np.random.uniform(low=0.1, high=FIELD_RANGE, size=(number, 2))
+    raRandPos *= (2*np.random.randint(0,2,size=(number, 2))-1)
+    
     mass = 10
     baseOrientation = [0, 0, 0, 1]
 
@@ -44,7 +45,7 @@ def setupGoal(client, coord):
     idCollisionShape = None
 
     basePosition = [coord[0], coord[1], 0.025]
-    modelGoal = p.createMultiBody(baseVisualShapeIndex=idVisualShape, basePosition=basePosition)
+    modelGoal = setupGoal(p, np.random.uniform(low=-FIELD_RANGE, high=FIELD_RANGE, size=2))
 
     return modelGoal
 
