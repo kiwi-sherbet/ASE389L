@@ -31,7 +31,6 @@ SUBPATH_CONFIG = {  "reward":   "reward.yaml",
                     "ppo":      "ppo.yaml",
                     "experiment": "experiment.yaml"}
 
-
 SUBPATH_ROBOT = {   "test":      "robots/mobile.urdf"}
 
 
@@ -45,7 +44,7 @@ NUM_COMMANDS = 2
 
 PI = 3.14159265359
 GRAVITY = (0, 0, -9.8)
-FIELD_RANGE = 5
+FIELD_RANGE = 10
 
 ## Reward coefficients ##
 
@@ -57,6 +56,3 @@ COEFF_REWARD_DEFAULT = {"RewardVel": - 1.0e0,
 ## Controller configuartion ##
 
 DEFAULT_ACTION = (0, 0)
-
-GAIN_P = (5.0e-1, 5.0e-1)
-GAIN_D = (0., 0.)

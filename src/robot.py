@@ -59,15 +59,15 @@ class modelMobile():
 
 		if mode == POSITION:
 			self.sim.setJointMotorControl2(self.idRobot, self.jntActiveRight, self.sim.POSITION_CONTROL, targetPosition=raVal[0], force=100)
-			self.sim.setJointMotorControl2(self.idRobot, self.jntActiveLeft, self.sim.POSITION_CONTROL, targetPosition=raVal[0], force=100)
+			self.sim.setJointMotorControl2(self.idRobot, self.jntActiveLeft, self.sim.POSITION_CONTROL, targetPosition=raVal[1], force=100)
 
 		elif mode == VELOCITY:
 			self.sim.setJointMotorControl2(self.idRobot, self.jntActiveRight, self.sim.VELOCITY_CONTROL, targetVelocity=raVal[0], force=100)
-			self.sim.setJointMotorControl2(self.idRobot, self.jntActiveLeft, self.sim.VELOCITY_CONTROL, targetVelocity=raVal[0], force=100)
+			self.sim.setJointMotorControl2(self.idRobot, self.jntActiveLeft, self.sim.VELOCITY_CONTROL, targetVelocity=raVal[1], force=100)
 
 		else:
 			self.sim.setJointMotorControl2(self.idRobot, self.jntActiveRight, self.sim.TORQUE_CONTROL, force=raVal[0])
-			self.sim.setJointMotorControl2(self.idRobot, self.jntActiveLeft, self.sim.TORQUE_CONTROL, force=raVal[0])
+			self.sim.setJointMotorControl2(self.idRobot, self.jntActiveLeft, self.sim.TORQUE_CONTROL, force=raVal[1])
 
 
 	def getCurrentWheelJoints(self, mode):

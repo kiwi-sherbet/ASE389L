@@ -58,7 +58,7 @@ def setupWorld(client):
     modelTerrain  = p.createMultiBody(0, shapePlane)
     p.changeDynamics(modelTerrain, -1, lateralFriction=1.0)
 
-    raObstacles = setupObstacles(p, 10)
+    raObstacles = setupObstacles(p, 20)
     modelGoal = setupGoal(p, FIELD_RANGE*np.random.randn(2))
     ## Set up robot
     modelRobot = robot.modelMobile(p, [0., 0., 0.5], [0, 0, 0, 1])
@@ -72,7 +72,7 @@ def setupWorld(client):
 ## Terrain affordance module
 class envTest(Env):
 
-    def __init__(self,  training=True, recording=None, reward=COEFF_REWARD_DEFAULT):
+    def __init__(self,  training=True, recording=None, reward=COEFF_REWARD_DEFAULT, action_mode=VELOCITY, max_steps=2000):
 
         if training:
             self.client = c.BulletClient(connection_mode=p.DIRECT)
@@ -89,6 +89,9 @@ class envTest(Env):
         self.action_space = spaces.Box( low=-1,
                                         high=1,
                                         shape=(NUM_ACTIONS,), dtype=np.float32)
+
+        self.action_mode = action_mode
+        self.max_steps = max_steps
 
         if recording is not None:
             self.flagRecord = True
@@ -140,7 +143,7 @@ class envTest(Env):
         self.robot = self.models['robot']
         self.goal = self.models['goal']
 
-        self.control = control.ctlrRobot(self.robot)
+        self.control = control.ctlrRobot(self.robot, self.action_mode)
         self.dicCmdParam = {"Offset": np.zeros(NUM_COMMANDS), 
                             "Scale":  np.array([1] * NUM_COMMANDS)}
         self.dicActParam = {"Offset": np.zeros(NUM_ACTIONS), 
@@ -234,7 +237,7 @@ class envTest(Env):
         if sqrErr < 0.04:
             done = True
             dicRew["Goal"] = self.dicRewardCoeff["Goal"]
-        elif self.cnt > 1000 or self.robot.checkFlipped():
+        elif self.cnt > self.max_steps or self.robot.checkFlipped():
             dicRew["Fail"] = self.dicRewardCoeff["Fail"]
             done = True
         else:

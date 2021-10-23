@@ -7,7 +7,7 @@ from constants import *
 
 class ctlrRobot(object):
         
-    def __init__(self, hdlrRobot):
+    def __init__(self, hdlrRobot, mode):
 
         self.raDefaultJointAction = np.array(DEFAULT_ACTION)
         self.raMinJointPos = np.array([-2] * NUM_ACTIONS)
@@ -16,6 +16,7 @@ class ctlrRobot(object):
         self.hdlrRobot = hdlrRobot
 
         self._flagAction = True
+        self.mode = mode
 
         self.reset()
         self.rcvObservation()
@@ -74,7 +75,7 @@ class ctlrRobot(object):
 
     def applyAction(self, raAction):
 
-        self.hdlrRobot.setTargetWheelJoints(VELOCITY, raAction)
+        self.hdlrRobot.setTargetWheelJoints(self.mode, raAction)
 
         return
 
