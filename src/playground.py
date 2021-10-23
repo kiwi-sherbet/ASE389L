@@ -45,7 +45,7 @@ def setupGoal(client, coord):
     idCollisionShape = None
 
     basePosition = [coord[0], coord[1], 0.025]
-    modelGoal = setupGoal(p, np.random.uniform(low=-FIELD_RANGE, high=FIELD_RANGE, size=2))
+    modelGoal = p.createMultiBody(baseVisualShapeIndex=idVisualShape, basePosition=basePosition)
 
     return modelGoal
 
@@ -60,7 +60,7 @@ def setupWorld(client):
     p.changeDynamics(modelTerrain, -1, lateralFriction=1.0)
 
     raObstacles = setupObstacles(p, 20)
-    modelGoal = setupGoal(p, FIELD_RANGE*np.random.randn(2))
+    modelGoal = setupGoal(p, np.random.uniform(low=-FIELD_RANGE, high=FIELD_RANGE, size=2))
     ## Set up robot
     modelRobot = robot.modelMobile(p, [0., 0., 0.5], [0, 0, 0, 1])
 
