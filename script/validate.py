@@ -15,8 +15,7 @@ from tianshou.policy import PPOPolicy
 from tianshou.utils.net.continuous import ActorProb, Critic
 from tianshou.data import Collector
 
-from wrapper import envQuad, envQuadViz
-from network import AdaptationNet
+from playground import envTest
 from constants import *
 
 
@@ -32,15 +31,14 @@ def eval(path, epoch=None):
         video_path = "{}/video/policy".format(path)
     os.makedirs(video_path, exist_ok=True)
 
-    env = envQuad(training=True, reward=reward_config, recording=video_path)
-    # env = envQuad(training=True, reward=reward_config)
+    env = envTest(training=True, recording=save_test_video_path, reward=reward_config)
     state_shape = env.observation_space.shape or env.observation_space.n
     action_shape = env.action_space.shape or env.action_space.n
     max_action = env.action_space.high[0]
 
-    net_a = AdaptationNet(50, NUM_TOTAL_MOTORS, NUM_HISTORY, activation=nn.Tanh, device=device)
+    net_a = Net(state_shape, hidden_sizes=(256, 256), device=device)
+    net_c = Net(state_shape, hidden_sizes=(256, 256), device=device)
     actor = ActorProb(net_a, action_shape, max_action=max_action, unbounded=True, device=device).to(device)
-    net_c = AdaptationNet(50, NUM_TOTAL_MOTORS, NUM_HISTORY, activation=nn.Tanh, device=device)
     critic = Critic(net_c, device=device).to(device)
 
     optim = torch.optim.Adam(
@@ -90,7 +88,6 @@ def eval(path, epoch=None):
 
     test_collector = Collector(policy, env)
 
-    # Let's watch its performance!
     policy.eval()
     # test_envs.seed(args.seed)
     # test_collector.reset()

@@ -20,7 +20,7 @@ REPEAT_ACTION = 10
 
 ## System configuration ##
 
-PATH_SRC    = path.dirname(path.realpath(__file__))
+PATH_SCRIPT = path.dirname(path.realpath(__file__))
 PATH_ROOT   = path.dirname(PATH_SRC)
 PATH_CONFIG = PATH_ROOT+"/config"
 PATH_SAVE = PATH_ROOT+"/save"
@@ -45,12 +45,6 @@ NUM_COMMANDS = 2
 PI = 3.14159265359
 GRAVITY = (0, 0, -9.8)
 FIELD_RANGE = 10
-
-## Reward coefficients ##
-
-COEFF_REWARD_DEFAULT = {"RewardVel": - 1.0e0,
-                        "RewardPos": - 1.0e0,
-                        "RewardAtt": - 1.0e0}
 
 
 ## Controller configuartion ##

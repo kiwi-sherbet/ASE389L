@@ -73,7 +73,7 @@ def setupWorld(client):
 ## Terrain affordance module
 class envTest(Env):
 
-    def __init__(self,  training=True, recording=None, reward=COEFF_REWARD_DEFAULT, action_mode=VELOCITY, max_steps=2000):
+    def __init__(self,  training=True, recording=None, reward={}, action_mode=VELOCITY, max_steps=2000):
 
         if training:
             self.client = c.BulletClient(connection_mode=p.DIRECT)
@@ -226,7 +226,7 @@ class envTest(Env):
 
         ### YOUR ENVIRONMENT CONSTRAINTS HERE ###
         
-        sqrErr = np.sum((target - raBodyPos)**2)
+        sqrErr = np.sum((target[0:2] - raBodyPos[0:2])**2)
         valEng = np.sum(np.absolute(raWheelTrq.flatten() @ raWheelVel.flatten()))
 
         dicState["Distance"] = sqrErr
@@ -235,7 +235,7 @@ class envTest(Env):
         dicRew["Position"] = self.dicRewardCoeff["Position"] * sqrErr
         dicRew["Energy"] = self.dicRewardCoeff["Energy"] * valEng
 
-        if sqrErr < 0.04:
+        if sqrErr < 0.01:
             done = True
             dicRew["Goal"] = self.dicRewardCoeff["Goal"]
         elif self.cnt > self.max_steps or self.robot.checkFlipped():
