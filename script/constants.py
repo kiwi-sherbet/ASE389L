@@ -21,7 +21,7 @@ REPEAT_ACTION = 10
 ## System configuration ##
 
 PATH_SCRIPT = path.dirname(path.realpath(__file__))
-PATH_ROOT   = path.dirname(PATH_SRC)
+PATH_ROOT   = path.dirname(PATH_SCRIPT)
 PATH_CONFIG = PATH_ROOT+"/config"
 PATH_SAVE = PATH_ROOT+"/save"
 PATH_DATA   = PATH_ROOT+"/data"
