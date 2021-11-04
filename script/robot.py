@@ -1,7 +1,7 @@
 #! /usr/bin/python3
 
 from constants import *
-import numpy as np
+
 
 # Define objects for the legged manipulator ##
 ## TODO: torque stuffs
@@ -31,23 +31,6 @@ class modelMobile():
 
 		self.jntActiveRight = jointNameToID['jointActiveRight']
 		self.jntActiveLeft = jointNameToID['jointActiveLeft']
-
-
-		self.jntCamera = jointNameToID['jointCamera']
-
-		self.fov = 60
-		self.aspect = 1.0
-		self.nearplane = 0.01
-		self.farplane = 100
-
-		# Initial vectors
-		self.vecFor = (1, 0, 0) # z-axis
-		self.vecUp = (0, 0, 1) # y-axis
-
-		self.resWidth = 200
-		self.resHeight = 200
-
-		self.valFocalLength = 0.3
 
 		return
 
@@ -150,36 +133,3 @@ class modelMobile():
 		position_base, orientation_base = self.getCurrentBodyPose()
 		rot_mat = self.sim.getMatrixFromQuaternion(orientation_base)
 		return rot_mat[-1] < 0.5
-
-
-	def setupCamera(self, fov, aspect, nearplane, farplane, resWidth, resHeight, valFocalLength):
-
-		self.fov = 60
-		self.aspect = 1.0
-		self.nearplane = nearplane
-		self.farplane = farplane
-
-		self.resWidth = resWidth
-		self.resHeight = resHeight
-
-		self.valFocalLength = valFocalLength
-
-
-	def getImgRGBD(self):
-
-		matProj = self.sim.computeProjectionMatrixFOV(self.fov, self.aspect, self.nearplane, self.farplane)
-
-		# Center of mass position and orientation (of link-7)
-		vecCOMXYZ, vecCOMAng, _, _, _, _ = self.sim.getLinkState(self.idRobot, self.jntCamera, computeForwardKinematics=True)
-		matRot = np.array(self.sim.getMatrixFromQuaternion(vecCOMAng)).reshape(3, 3)
-
-		# Rotated vectors
-		vecFor = matRot.dot(self.vecFor)
-		vecUp = matRot.dot(self.vecUp)
-
-		matView = self.sim.computeViewMatrix(vecCOMXYZ , vecCOMXYZ + self.valFocalLength * vecFor, vecUp)
-		width, height, imgRGB, imgDepth, buffer = self.sim.getCameraImage(self.resWidth, self.resHeight, matView, matProj, shadow=True)
-
-		return imgRGB, imgDepth
-
-

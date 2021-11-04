@@ -5,16 +5,18 @@ import yaml
 
 import numpy as np
 
+from collections import OrderedDict
+
 import torch
 from torch import nn
 from torch.optim.lr_scheduler import LambdaLR
 from torch.distributions import Independent, Normal
 
-
 from tianshou.policy import PPOPolicy
 from tianshou.utils.net.continuous import ActorProb, Critic
 from tianshou.data import Collector
 
+from network import mlp
 from playground import envTest
 from constants import *
 
@@ -31,13 +33,13 @@ def eval(path, epoch=None):
         video_path = "{}/video/policy".format(path)
     os.makedirs(video_path, exist_ok=True)
 
-    env = envTest(training=True, recording=save_test_video_path, reward=reward_config)
+    env = envTest(training=True, recording=video_path, reward=reward_config)
     state_shape = env.observation_space.shape or env.observation_space.n
     action_shape = env.action_space.shape or env.action_space.n
     max_action = env.action_space.high[0]
-
-    net_a = Net(state_shape, hidden_sizes=(256, 256), device=device)
-    net_c = Net(state_shape, hidden_sizes=(256, 256), device=device)
+    
+    net_a = mlp(device=device)
+    net_c = mlp(device=device)
     actor = ActorProb(net_a, action_shape, max_action=max_action, unbounded=True, device=device).to(device)
     critic = Critic(net_c, device=device).to(device)
 
@@ -73,18 +75,26 @@ def eval(path, epoch=None):
                         advantage_normalization=ppo_config["Advantage Normalization"],
                         recompute_advantage=ppo_config["Recompute Advantage"])
 
+    model_dict = OrderedDict()
+
     if epoch:
         filepath = "{}/policy/checkpoint_{}.pth".format(path, epoch)
         checkpoint = torch.load(filepath, map_location=device)
-        policy.load_state_dict(checkpoint['model'])
-        optim.load_state_dict(checkpoint['optim'])
-        print("\rLoaded agent from: ", filepath)
+
+        for key in checkpoint['model'].keys():
+            # model_dict['_actor_critic.{}'.format(key)] = checkpoint['model'][key]
+            model_dict[key] = checkpoint['model'][key]
+
     else:
         filepath = "{}/policy/policy.pth".format(path)
         checkpoint = torch.load(filepath, map_location=device)
-        policy.load_state_dict(checkpoint)
-        print("\rLoaded agent from: ", filepath)
 
+        for key in checkpoint['model'].keys():
+            # model_dict['_actor_critic.{}'.format(key)] = checkpoint[key]
+            model_dict[key] = checkpoint[key]
+
+        policy.load_state_dict(model_dict)
+        print("\rLoaded agent from: ", filepath)
 
     test_collector = Collector(policy, env)
 
@@ -97,11 +107,7 @@ def eval(path, epoch=None):
 
 if __name__ == '__main__':
 
-    task = "Blind Locomotion".replace(" ", "_")
-    exp = "seed_0_0804_152302_ppo"
-
-    # eval("{}/{}/{}".format(PATH_SAVE, task, exp), )
-
-    for idx in range(12):
-        epoch = (idx+1) * 10 
-        eval("{}/{}/{}".format(PATH_SAVE, task, exp), epoch)
+    task = "Obstacle_Real_Dynamics".replace(" ", "_")
+    exp = "Oct_22_1024_164912"
+    epoch = 1746
+    eval("{}/{}/{}".format(PATH_SAVE, task, exp), epoch)

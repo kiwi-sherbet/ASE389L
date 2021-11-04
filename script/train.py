@@ -14,11 +14,11 @@ from torch.distributions import Independent, Normal
 
 from tianshou.policy import PPOPolicy
 from tianshou.env import SubprocVectorEnv
-from tianshou.utils.net.common import Net
 from tianshou.trainer import onpolicy_trainer
 from tianshou.utils.net.continuous import ActorProb, Critic
 from tianshou.data import Collector, ReplayBuffer, VectorReplayBuffer
 
+from network import mlp
 from playground import envTest
 from logger import WandbLogger
 from constants import *
@@ -65,10 +65,8 @@ def train():
     np.random.seed(seed)
     torch.manual_seed(seed)
 
-    activation = [nn.ReLU, nn.ReLU]
-
-    net_a = Net(state_shape, hidden_sizes=(256, 256), device=device)
-    net_c = Net(state_shape, hidden_sizes=(256, 256), device=device)
+    net_a = mlp(device=device)
+    net_c = mlp(device=device)
     actor = ActorProb(net_a, action_shape, max_action=max_action, unbounded=True, device=device).to(device)
     critic = Critic(net_c, device=device).to(device)
     
