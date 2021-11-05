@@ -10,6 +10,15 @@ Install dependencies by running the following commands:
 pip3 install -r requirements.txt
 ```
 
+Also, you need to install the following [fork](https://github.com/kiwi-sherbet/tianshou.git) of [tianshou](https://github.com/thu-ml/tianshou)
+
+```
+git clone https://github.com/kiwi-sherbet/tianshou.git
+cd tianshou
+python setup.py install
+cd ..
+```
+
 ## Usage
 You can train the model with the following commands:
 ```
