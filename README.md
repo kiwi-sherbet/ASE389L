@@ -21,12 +21,6 @@ You can also test the trained policy with the following commands (need some modi
 python script/evaluate.py
 ```
 
-You can train the gait-planning network with the following commands:
-```
-cd src
-python3 train.py -v=VISUALIZATON_MODE -t=TERRAIN_TYPE -o=OBJECT_TYPE -q=ROBOT_TYPE
-```
-
 ## Robot Models
 You can modify the robot model in the simulation. You should not change the names of the links and the joints, or the code may not work. Check the following directory: `/data`
 
