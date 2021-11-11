@@ -73,7 +73,7 @@ def setupWorld(client):
 ## Terrain affordance module
 class envTest(Env):
 
-    def __init__(self,  training=True, recording=None, reward={}, action_mode=VELOCITY, max_steps=2000):
+    def __init__(self,  training=True, recording=None, reward={}, action_mode=VELOCITY, depth_res=None, max_steps=2000):
 
         if training:
             self.client = c.BulletClient(connection_mode=p.DIRECT)
@@ -83,9 +83,21 @@ class envTest(Env):
 
         self.dicRewardCoeff = reward
 
-        self.observation_space = spaces.Box(low=np.array((-1, -1, -1, -1, -10, -10, -10, -10, -10, -10, -10, -10, - 2 * FIELD_RANGE, - 2 * FIELD_RANGE, - 2 * FIELD_RANGE)),
-                                            high=np.array((1, 1, 1, 1, 10, 10, 10, 10, 10, 10, 10, 10, 2 * FIELD_RANGE, 2 * FIELD_RANGE, 2 * FIELD_RANGE)),
-                                            shape=(15,), dtype=np.float32)
+        self.depth_res = depth_res
+
+        obs_high = [-1, -1, -1, -1, -10, -10, -10, -10, -10, -10, -10, -10, - 2 * FIELD_RANGE, - 2 * FIELD_RANGE, - 2 * FIELD_RANGE]
+        obs_low = [1, 1, 1, 1, 10, 10, 10, 10, 10, 10, 10, 10, 2 * FIELD_RANGE, 2 * FIELD_RANGE, 2 * FIELD_RANGE]
+        obs_shape = 15
+
+        if self.depth_res != None:
+            depth_size = np.prod(self.depth_res)
+            obs_high += [0] * depth_size
+            obs_low += [1] * depth_size
+            obs_shape += depth_size
+
+        self.observation_space = spaces.Box(low=np.array(obs_high),
+                                            high=np.array(obs_low),
+                                            shape=(obs_shape,), dtype=np.float32)
 
         self.action_space = spaces.Box( low=-1,
                                         high=1,
@@ -142,6 +154,10 @@ class envTest(Env):
         # creating environment
         self.models = setupWorld(self.client)
         self.robot = self.models['robot']
+
+        if self.depth_res != None:
+            self.robot.setupCamera(60, 1.0, 0.01, 100, self.depth_res[0], self.depth_res[1], 0.3)
+
         self.goal = self.models['goal']
 
         self.control = control.ctlrRobot(self.robot, self.action_mode)
@@ -264,8 +280,16 @@ class envTest(Env):
         obsVel = self.robot.getBaseVelocity()
         obsYawRate = self.robot.getBaseRollPitchYawRate()
         obsTarget = self.robot.getTargetToLocalFrame(self._get_targets())
+        
+        obs = np.concatenate((obsBodyAtt, obsWheel, obsVel, obsYawRate, obsTarget), axis=None)
 
-        return np.concatenate((obsBodyAtt, obsWheel, obsVel, obsYawRate, obsTarget), axis=None)
+        if self.depth_res != None:
+            _, obsDepth = self.robot.getImgRGBD()
+            obsDepth.flatten()
+
+            obs = np.concatenate((obs, obsDepth), axis=None)
+
+        return obs
 
 
     def _get_targets(self):

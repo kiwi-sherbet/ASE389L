@@ -2,6 +2,7 @@ import yaml
 import numpy as np
 import torch
 import os
+import cv2
 
 from constants import *
 from playground import envTest
@@ -19,12 +20,16 @@ env = envTest(training=False, recording=save_test_video_path, reward=reward_conf
 env.reset()
 
 done = False
+cnt = 0
 
 while not done:
     # action = np.random.normal(0, 0.25, size=(2))
     # action = np.array([0.3, 0.3])
     action = np.cos(0.05*cnt) * np.array([1.0, 1.0])
     ob, rw, done, _ = env.step(action)
+
+    rgb, depth = env.robot.getImgRGBD()
+    
     cnt+=1
 
 env.close()
