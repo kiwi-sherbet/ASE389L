@@ -46,17 +46,17 @@ def train():
     os.makedirs(save_training_video_path, exist_ok=True)
     os.makedirs(save_test_video_path, exist_ok=True)
 
-    env = envTest(training=True, recording=save_test_video_path, depth_res = (20, 20), reward=reward_config)
+    env = envTest(training=True, recording=save_test_video_path, depth_res = None, reward=reward_config)
     state_shape = env.observation_space.shape or env.observation_space.n
     action_shape = env.action_space.shape or env.action_space.n
     max_action = env.action_space.high[0]
 
     train_envs = SubprocVectorEnv(
-        [lambda: envTest(training=True, reward=reward_config, depth_res = (20, 20)) for _ in range(ppo_config["Training Envs"])],
+        [lambda: envTest(training=True, reward=reward_config, depth_res = None) for _ in range(ppo_config["Training Envs"])],
         norm_obs=False)
 
     test_envs = SubprocVectorEnv(
-        [lambda: envTest(training=True, reward=reward_config, depth_res = (20, 20)) for _ in range(ppo_config["Test Envs"]-1)]
+        [lambda: envTest(training=True, reward=reward_config, depth_res = None) for _ in range(ppo_config["Test Envs"]-1)]
         + [lambda: envTest(training=True, recording=save_test_video_path, reward=reward_config, depth_res = (20, 20))],
         norm_obs=False, obs_rms=train_envs.obs_rms, update_obs_rms=False)
 
@@ -65,8 +65,8 @@ def train():
     np.random.seed(seed)
     torch.manual_seed(seed)
 
-    net_a = cnn_mlp(device=device)
-    net_c = cnn_mlp(device=device)
+    net_a = mlp(device=device)
+    net_c = mlp(device=device)
     actor = ActorProb(net_a, action_shape, max_action=max_action, unbounded=True, device=device).to(device)
     critic = Critic(net_c, device=device).to(device)
     
