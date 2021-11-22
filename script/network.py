@@ -50,7 +50,7 @@ class cnn_mlp(nn.Module):
 
         ## CNN Model ##
 
-        self.cnn_input_dim = (20, 20)
+        self.cnn_input_dim = (40, 40)
         self.cnn_input_size = np.prod(self.cnn_input_dim)
         self.cnn_input_channel = 1
         self.cnn_channel_sizes = (self.cnn_input_channel, 32, 32)

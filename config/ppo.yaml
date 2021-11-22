@@ -1,6 +1,6 @@
 Epoch: 3000
-Buffer Size: 262144
-Batch Size: 65536
+Buffer Size: 4096
+Batch Size: 2048
 Step/Epoch: 150000
 Step/Collect: 8192
 Repeat/Collect: 10
