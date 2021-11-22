@@ -31,8 +31,8 @@ class mlp(nn.Module):
         info: Dict[str, Any] = {},
     ) -> Tuple[torch.Tensor, Any]:
 
-        s = torch.as_tensor(s,
-                            device=self.device, dtype=torch.float32,)
+        s = torch.as_tensor(s, device=self.device, dtype=torch.float32,)
+
         logits = self.model(s.flatten(1))
 
         return logits, state
@@ -51,6 +51,7 @@ class cnn_mlp(nn.Module):
         ## CNN Model ##
 
         self.cnn_input_dim = (20, 20)
+        self.cnn_input_size = np.prod(self.cnn_input_dim)
         self.cnn_input_channel = 1
         self.cnn_channel_sizes = (self.cnn_input_channel, 32, 32)
         self.cnn_kernel_sizes = (4, 4)
@@ -102,11 +103,10 @@ class cnn_mlp(nn.Module):
         info: Dict[str, Any] = {},
     ) -> Tuple[torch.Tensor, Any]:
 
-        s = torch.as_tensor(s,
-                            device=self.device, dtype=torch.float32,)
+        s = torch.as_tensor(s, device=self.device, dtype=torch.float32,)
         o1 = s.narrow(1, 0, 15)
 
-        t1 = s.narrow(1, 15, np.prod(self.cnn_input_dim))
+        t1 = s.narrow(1, 15, self.cnn_input_size)
         t1 = t1.reshape((-1, 1, self.cnn_input_dim[0], self.cnn_input_dim[1]))
         t2 = self.cnn_model(t1)
 

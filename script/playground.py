@@ -91,8 +91,8 @@ class envTest(Env):
 
         if self.depth_res != None:
             depth_size = np.prod(self.depth_res)
-            obs_high += [0] * depth_size
-            obs_low += [1] * depth_size
+            obs_high += [1] * depth_size
+            obs_low += [0] * depth_size
             obs_shape += depth_size
 
         self.observation_space = spaces.Box(low=np.array(obs_high),
